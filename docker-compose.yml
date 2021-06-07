@@ -24,7 +24,7 @@ services:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin123
       - PROXY_ADDRESS_FORWARDING=true
-      # - KEYCLOAK_FRONTEND_URL=http://docker.for.mac.localhost:8180
+      # - KEYCLOAK_FRONTEND_URL=http://keycloak:8080
     ports:
       - "8180:8080"
     restart: always
@@ -85,9 +85,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${HUME_DB_PASSWORD:-pgsqls3cr3t}
       - hume.orchestra.uri=http://orchestra:8100
       - hume.security.provider=keycloak
-      - keycloak.auth-server-url=http://keycloak:8080/auth
+      - keycloak.auth-server-url=http://localhost:8180/auth
+      - keycloak.proxy-url=http://keycloak:8080/auth
       - keycloak.realm=hume
-      - keycloak.realm-public-key=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0tFnUNHNzXm8rgj6YfOFb7psBCcgHmVjiwKUWiXH0vxX/geI3BGF6JmBAbduLZZ/n2fdis202UQrFjm/rFRA/8tWwb+XmXDKk6swNH5thL1PbAIqiVL8CAPvZg0hOVAM83Zum5bVjiAXfxanFCYl2n7Gz4recvKecWjvC44CwlPTgTvP+MizSnl2TWhfu24QKslaYhSYBANuANoe34X0xMiVt5nT2zdpVOHXBA+GtY+2CAyxuc8Sw3KkSUNHzNsTmoAynLvDrzvmwRiTNHenrGH/ZsjQ3jrIfrKM3yFS3e8lYFTpEUm/ZyjHtxN91LHvO/No8V3/VNsjZFY3VEwx0QIDAQAB
       - keycloak.resource=hume-web
       - keycloak.public-client=true
       - keycloak.principal-attribute=preferred_username
