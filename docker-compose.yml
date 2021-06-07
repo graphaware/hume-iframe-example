@@ -1,6 +1,6 @@
 version: '3.7'
 services:
-  postgreskeycloak:
+  postgres_keycloak:
     image: docker.graphaware.com/mirror/postgres:12.0
     volumes:
       - "hume_keycloak_data:/var/lib/postgresql/data"
@@ -12,10 +12,10 @@ services:
     expose:
       - "5433" # Publishes 5433 to other containers but NOT to host machine
   keycloak:
-    image: quay.io/keycloak/keycloak:9.0.3
+    image: docker.graphaware.com/public/keycloak:13.0.1
     environment:
       - DB_VENDOR=POSTGRES
-      - DB_ADDR=postgreskeycloak
+      - DB_ADDR=postgres_keycloak
       - DB_PORT=5433
       - DB_DATABASE=keycloak
       - DB_USER=keycloak
@@ -28,15 +28,15 @@ services:
     ports:
       - "8180:8080"
     restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/jboss/keycloak/bin/jboss-cli.sh -c command=':read-attribute(name=server-state)' |grep running"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+    # healthcheck:
+    #   test: ["CMD-SHELL", "/opt/jboss/keycloak/bin/jboss-cli.sh -c command=':read-attribute(name=server-state)' |grep running"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 10
     volumes:
       - ./resources/scripts:/tmp/scripts
   keycloak_create_users:
-    image: quay.io/keycloak/keycloak:9.0.3
+    image: docker.graphaware.com/public/keycloak:13.0.1
     depends_on:
       - keycloak
     volumes:
@@ -64,7 +64,7 @@ services:
       - "hume_neo4j_data:/data"
       - "hume_neo4j_plugins:/plugins"
   orchestra:
-    image: docker.graphaware.com/internal/hume-orchestra:${HUME_VERSION}
+    image: docker.graphaware.com/public/hume-orchestra:${HUME_VERSION}
     ports:
       - 8100:8100
       - 8666:8666
@@ -80,7 +80,7 @@ services:
     volumes:
       - "hume_postgres_data:/var/lib/postgresql/data"
   api:
-    image: docker.graphaware.com/internal/hume-api:${HUME_VERSION}
+    image: docker.graphaware.com/public/hume-api:${HUME_VERSION}
     ports:
       - "8080:8080"
       - "8001:8001"
@@ -99,7 +99,7 @@ services:
       - keycloak.use-resource-role-mappings=true
       - keycloak.enabled=true
   web:
-    image: docker.graphaware.com/internal/hume-web:${HUME_VERSION}
+    image: docker.graphaware.com/public/hume-web:${HUME_VERSION}
     environment:
       - HUME_API_URL=http://localhost:8080
       - HUME_BASE_PATH=/
@@ -114,7 +114,7 @@ services:
     ports:
       - "${HUME_FRONT_PORT:-8081}:80"
   example-react-app:
-    image: docker.graphaware.com/public/hume-iframe-react-example:v4
+    image: docker.graphaware.com/public/hume-iframe-react-example:${REACT_APP_VERSION}
     ports:
       - '8905:80'
     environment:
