@@ -24,6 +24,7 @@ services:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin123
       - PROXY_ADDRESS_FORWARDING=true
+      - KEYCLOAK_IMPORT=/tmp/scripts/realm-export.json
     ports:
       - "8180:8080"
     restart: always
@@ -32,6 +33,17 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
+    volumes:
+      - ./resources/scripts:/tmp/scripts
+  keycloak_create_users:
+    image: quay.io/keycloak/keycloak:9.0.3
+    depends_on:
+      - keycloak
+    volumes:
+      - ./resources/scripts:/tmp/scripts
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+    entrypoint: /tmp/scripts/create-keycloak-user.sh
   neo4j:
     image: docker.graphaware.com/public/neo4j:4.2.5-enterprise
     ports:
