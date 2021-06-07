@@ -102,7 +102,7 @@ services:
     ports:
       - "${HUME_FRONT_PORT:-8081}:80"
   example-react-app:
-    image: docker.graphaware.com/internal/hume-iframe-react-example:v3
+    image: docker.graphaware.com/public/hume-iframe-react-example:v3
     ports:
       - '8905:80'
     environment:
