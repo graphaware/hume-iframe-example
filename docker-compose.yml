@@ -96,13 +96,13 @@ services:
       - KEYCLOAK_REALM=hume
       - KEYCLOAK_CLIENT=hume-web
       - BASE_PATH=/
-      - HUME_CROSS_DOCUMENT_MSG_VALID_URL=http://localhost:8905
+      - HUME_CROSS_DOCUMENT_MSG_VALID_URL=*
       # not necessary for local deployment
       # - HUME_COOKIE_ATTRIBUTES=SameSite=None; Secure
     ports:
       - "${HUME_FRONT_PORT:-8081}:80"
   example-react-app:
-    image: docker.graphaware.com/public/hume-iframe-react-example:v3
+    image: docker.graphaware.com/public/hume-iframe-react-example:v4
     ports:
       - '8905:80'
     environment:
