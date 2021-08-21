@@ -12,7 +12,7 @@ services:
     expose:
       - "5433" # Publishes 5433 to other containers but NOT to host machine
   keycloak:
-    image: docker.graphaware.com/public/keycloak:13.0.1
+    image: docker.graphaware.com/public/keycloak:15.0.1
     environment:
       - DB_VENDOR=POSTGRES
       - DB_ADDR=postgres_keycloak
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./resources/scripts:/tmp/scripts
   keycloak_create_users:
-    image: docker.graphaware.com/public/keycloak:13.0.1
+    image: docker.graphaware.com/public/keycloak:15.0.1
     depends_on:
       - keycloak
     volumes:
@@ -45,7 +45,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
     entrypoint: /tmp/scripts/create-keycloak-user.sh
   neo4j:
-    image: docker.graphaware.com/public/neo4j:4.2.5-enterprise
+    image: docker.graphaware.com/public/neo4j:4.3.3-enterprise
     ports:
       - "${NEO4J_HTTP_PORT:-7474}:7474"
       - "${NEO4J_BOLT_PORT:-7687}:7687"
@@ -112,7 +112,7 @@ services:
       # not necessary for local deployment
       # - HUME_COOKIE_ATTRIBUTES=SameSite=None; Secure
     ports:
-      - "${HUME_FRONT_PORT:-8081}:80"
+      - "${HUME_FRONT_PORT:-8081}:8081"
   example-react-app:
     image: docker.graphaware.com/public/hume-iframe-react-example:${REACT_APP_VERSION}
     ports:
