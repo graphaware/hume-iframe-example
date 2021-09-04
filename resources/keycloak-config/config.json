@@ -1,0 +1,83 @@
+{
+    "enabled": true,
+    "realm": "hume",
+    "users": [
+        {
+            "username": "$(env:TESTUSER_NAME)",
+            "email": "chris@hume.k8s",
+            "enabled": true,
+            "credentials": [
+              {
+                "type": "password",
+                "value": "$(env:TESTUSER_PASSWORD)"
+              }
+            ],
+            "clientRoles": {
+                "hume-api": [
+                    "ROLE_USER",
+                    "ROLE_ADMINISTRATOR"
+                ]
+            }
+          }
+    ],
+    "roles": {
+        "realm": [],
+        "client": {
+            "hume-api": [
+                {
+                    "name": "ROLE_USER",
+                    "description": "user role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                },
+                {
+                    "name": "ROLE_ADMINISTRATOR",
+                    "description": "administrator role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                }
+            ]
+        }
+    },
+    "clients": [
+        {
+            "clientId": "hume-api",
+            "name": "hume-api",
+            "description": "Hume API confidential client",
+            "enabled": true,
+            "publicClient": false,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "my-special-client-secret",
+            "redirectUris": [
+                "*"
+            ],
+            "webOrigins": [
+                "*"
+            ]
+        },
+        {
+            "clientId": "hume-web",
+            "name": "hume-web",
+            "description": "Hume Web public client",
+            "enabled": true,
+            "publicClient": true,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "serviceAccountsEnabled": false,
+            "frontchannelLogout": false,
+            "protocol": "openid-connect",
+            "clientAuthenticatorType": "client-secret",
+            "secret": "my-special-client-secret",
+            "redirectUris": [
+                "*"
+            ],
+            "webOrigins": [
+                "*"
+            ]
+        }
+    ]
+}
