@@ -25,15 +25,8 @@ services:
       - KEYCLOAK_PASSWORD=admin123
       - PROXY_ADDRESS_FORWARDING=true
       - KEYCLOAK_FRONTEND_URL=http://localhost:8180/auth
-      # - KEYCLOAK_LOGLEVEL=DEBUG
     ports:
       - "8180:8080"
-    restart: always
-    # healthcheck:
-    #   test: ["CMD-SHELL", "/opt/jboss/keycloak/bin/jboss-cli.sh -c command=':read-attribute(name=server-state)' |grep running"]
-    #   interval: 10s
-    #   timeout: 10s
-    #   retries: 10
     volumes:
       - ./resources/scripts:/tmp/scripts
   keycloak-config:

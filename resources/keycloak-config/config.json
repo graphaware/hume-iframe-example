@@ -4,7 +4,7 @@
     "users": [
         {
             "username": "$(env:TESTUSER_NAME)",
-            "email": "chris@hume.k8s",
+            "email": "testuser@hume.ga",
             "enabled": true,
             "credentials": [
               {
