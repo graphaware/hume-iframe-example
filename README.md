@@ -23,6 +23,6 @@ The following services will be up and running :
 
 Keycloak admin user is auto-configured with the following credentials : `admin/admin123`
 
-A default user for Hume with administrative rights has the following credentials : `testuser/default`
+A default user for Hume with administrative rights has the following credentials : `admin/password`
 
 ---

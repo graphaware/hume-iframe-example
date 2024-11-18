@@ -86,7 +86,7 @@ services:
       - keycloak.realm=hume
       - keycloak.resource=hume-web
       - keycloak.enabled=true
-      - com.hume.core.security.license.b64=AFswWTA4BgkqhkiG9w0BBQwwKwQUWBvrFi1s9mLWifIJxgz5AXAl6RICAhAAAgEQMAwGCCqGSIb3DQIJBQAwHQYJYIZIAWUDBAECBBA7CJ1RVK31llV4r59/2/u/+QdEvMuLV7omGcxNqhO9f9M+vsv044rqZO3wz1mfwa2jW1rhCQBJTJp9PYh2hppejs1SAkgcNoBBW8cv1NWRSylD6r+OCvfTh8k/JyHGRqgVI2c1Kmj3ht9wUew6uNyieXpeDdIoia7fL2JOL8Jv7P66JC5GTGBZeA5NbqRfc9kYoDei+U4kkfK9+U9e8kx6R4e5suE3/31M7/5n/HV4bUOkejlGdfjwonQ1JQOMe+umYxULYM25sV1KPIzV4CQXti7lkaIJR6uWqB5OraeMITfPMrIV9d6khndsP2GNEv7DcFaTTlIWEA4Op5kC2EwDmU+QRH8/qQPtutAvvvm4s7W/Gy4vMX7ZmBWN5BM9jXjsIPY8+pI3SaiWVvnQnwm4
+      - com.hume.core.security.license.b64=xxx
   web:
     image: docker.graphaware.com/internal/hume-web:${HUME_VERSION}
     environment:
