@@ -1,7 +1,7 @@
 version: '3.7'
 services:
-  postgres_keycloak:
-    image: docker.graphaware.com/mirror/postgres:12.0
+  postgres-keycloak:
+    image: docker.graphaware.com/mirror/postgres:14-alpine
     volumes:
       - "hume_keycloak_data:/var/lib/postgresql/data"
     environment:
@@ -12,62 +12,57 @@ services:
     expose:
       - "5433" # Publishes 5433 to other containers but NOT to host machine
   keycloak:
-    image: quay.io/keycloak/keycloak:15.0.2
+    image: docker.graphaware.com/internal/keycloak:21.1.0-enhanced
     environment:
-      - DB_VENDOR=POSTGRES
-      - DB_ADDR=postgres_keycloak
-      - DB_PORT=5433
-      - DB_DATABASE=keycloak
-      - DB_USER=keycloak
-      - DB_SCHEMA=public
-      - DB_PASSWORD=password
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=admin123
-      - PROXY_ADDRESS_FORWARDING=true
-      - KEYCLOAK_FRONTEND_URL=http://localhost:8180/auth
+      - KC_DB_URL=jdbc:postgresql://postgres-keycloak:5433/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=password
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+      - KC_HTTP_ENBALED=true
+      - KC_HTTP_PORT=8080
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8180
+      # - KC_PROXY=edge
+      - KC_HOSTNAME_ADMIN=localhost
+    command:
+      - start-dev --db=postgres
     ports:
       - "8180:8080"
     volumes:
       - ./resources/scripts:/tmp/scripts
   keycloak-config:
-    image: adorsys/keycloak-config-cli:latest
+    image: docker.graphaware.com/mirror/keycloak-config-cli:latest-21.0.1
     environment:
       - logging.level.root=DEBUG
-      - KEYCLOAK_URL=http://keycloak:8080/auth
+      - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin123
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
       - KEYCLOAK_AVAILABILITYCHECK_ENABLED=true
-      - KEYCLOAK_AVAILABILITYCHECK_TIMEOUT=10s
+      # The first time keycloak can take some time to be ready, use a sensible timeout
+      - KEYCLOAK_AVAILABILITYCHECK_TIMEOUT=120s
       - IMPORT_VARSUBSTITUTION=true
-      - TESTUSER_PASSWORD=${KEYCLOAK_DEFAULT_PASSWORD:-default}
-      - TESTUSER_NAME=${KEYCLOAK_DEFAULT_USER:-testuser}
+      - TESTUSER_PASSWORD=${TESTUSER_PASSWORD:-default}
       - IMPORT_PATH=/config
     volumes:
-      - ./resources/keycloak-config:/config
+        - ./resources/keycloak-config:/config
   neo4j:
-    image: docker.graphaware.com/mirror/neo4j:4.3.3-enterprise
+    image: docker.graphaware.com/internal/neo4j:5.24.2-graphaware
     ports:
       - "${NEO4J_HTTP_PORT:-7474}:7474"
       - "${NEO4J_BOLT_PORT:-7687}:7687"
     environment:
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
-      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-password}
-      - NEO4J_dbms_memory_heap_maxSize=4G
-      - NEO4J_dbms_connector_bolt_advertised__address=${HUME_ADVERTISED_ADDRESS:-localhost}:${NEO4J_PORT:-7687}
-      - NEO4JLABS_PLUGINS=["apoc","graph-data-science"]
-      - NEO4J_apoc_trigger_enabled=true
-    volumes:
-      - "hume_neo4j_data:/data"
-      - "hume_neo4j_plugins:/plugins"
-  orchestra:
-    image: docker.graphaware.com/public/hume-orchestra:${HUME_VERSION}
-    ports:
-      - 8100:8100
-      - 8666:8666
-    volumes:
-      - ${HUME_PUBLIC_DIR:-./public}:/data
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_server_memory_heap_max__size=2G
+      - NEO4J_db_logs_query_enabled=INFO
+      - NEO4J_db_logs_query_max__parameter__length=5000
+      - NEO4J_server_metrics_enabled=false
+      - NEO4J_server_metrics_csv_enabled=false
   postgres:
-    image: docker.graphaware.com/public/postgres:12.0
+    image: docker.graphaware.com/mirror/postgres:14-alpine
     environment:
       POSTGRES_PASSWORD: ${HUME_DB_PASSWORD:-pgsqls3cr3t}
       POSTGRES_USER: ${HUME_DB_USER:-hume}
@@ -76,7 +71,7 @@ services:
     volumes:
       - "hume_postgres_data:/var/lib/postgresql/data"
   api:
-    image: docker.graphaware.com/public/hume-api:${HUME_VERSION}
+    image: docker.graphaware.com/internal/hume-api:${HUME_VERSION}
     ports:
       - "8080:8080"
       - "8001:8001"
@@ -87,21 +82,18 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${HUME_DB_PASSWORD:-pgsqls3cr3t}
       - hume.orchestra.uri=http://orchestra:8100
       - hume.security.provider=keycloak
-      - keycloak.auth-server-url=http://keycloak:8080/auth
+      - keycloak.auth-server-url=http://keycloak:8080
       - keycloak.realm=hume
-      - keycloak.resource=hume-api
-      - keycloak.credentials.secret=my-special-client-secret
-      - keycloak.principal-attribute=preferred_username
-      - keycloak.use-resource-role-mappings=true
+      - keycloak.resource=hume-web
       - keycloak.enabled=true
-      - com.hume.core.security.license.b64=AFswWTA4BgkqhkiG9w0BBQwwKwQUDNtx44EdMGqIJqqM5pCWdlj9mRUCAhAAAgEQMAwGCCqGSIb3DQIJBQAwHQYJYIZIAWUDBAECBBCdKhmiRO3zaIlaoc2RHpXhBs4ylJxyaqB28b2b78MATcTJgNt+y+Lx3fDsDC8zPYXzY+9GjUpmOA3OYXe/5wqDX9txq6Ey79YNgRKxM0Y20eIfXWFgpm6b1KZREV5utBaAlWTKXhJj9OfSazlymSkBiqXb+J7Jz2ovGyRLzppAavOSr7eurcnrIqRxm8DLjswfzqDRaYwZ3+yWn+5fXsiL4H9XarSEBSGmawFXXbJlgTnMehpqBYy4F/X90Ak23B1GR+x+1PTAqGyHN+G4IzaFRDE6bXD29CuSP/6u5FFoqDO8NAEe4zsERT6kEsM3dduOb14zKuUgly6+yBdylZ4ab71yj12UBd2TP2Ldnsp5PWGBux4/JPcS7hpk0VmFsPkQGIkq7mQF7lOY3LJ6SzW5
+      - com.hume.core.security.license.b64=AFswWTA4BgkqhkiG9w0BBQwwKwQUWBvrFi1s9mLWifIJxgz5AXAl6RICAhAAAgEQMAwGCCqGSIb3DQIJBQAwHQYJYIZIAWUDBAECBBA7CJ1RVK31llV4r59/2/u/+QdEvMuLV7omGcxNqhO9f9M+vsv044rqZO3wz1mfwa2jW1rhCQBJTJp9PYh2hppejs1SAkgcNoBBW8cv1NWRSylD6r+OCvfTh8k/JyHGRqgVI2c1Kmj3ht9wUew6uNyieXpeDdIoia7fL2JOL8Jv7P66JC5GTGBZeA5NbqRfc9kYoDei+U4kkfK9+U9e8kx6R4e5suE3/31M7/5n/HV4bUOkejlGdfjwonQ1JQOMe+umYxULYM25sV1KPIzV4CQXti7lkaIJR6uWqB5OraeMITfPMrIV9d6khndsP2GNEv7DcFaTTlIWEA4Op5kC2EwDmU+QRH8/qQPtutAvvvm4s7W/Gy4vMX7ZmBWN5BM9jXjsIPY8+pI3SaiWVvnQnwm4
   web:
-    image: docker.graphaware.com/public/hume-web:${HUME_VERSION}
+    image: docker.graphaware.com/internal/hume-web:${HUME_VERSION}
     environment:
       - HUME_API_URL=http://localhost:8080
       - HUME_BASE_PATH=/
       - KEYCLOAK_ENABLED=true
-      - KEYCLOAK_URL=http://localhost:8180/auth
+      - KEYCLOAK_URL=http://localhost:8180
       - KEYCLOAK_REALM=hume
       - KEYCLOAK_CLIENT=hume-web
       - BASE_PATH=/
@@ -110,15 +102,15 @@ services:
       # - HUME_COOKIE_ATTRIBUTES=SameSite=None; Secure
     ports:
       - "${HUME_FRONT_PORT:-8081}:8081"
-  example-react-app:
-    image: docker.graphaware.com/public/hume-iframe-react-example:${REACT_APP_VERSION}
-    ports:
-      - '8905:80'
-    environment:
-      - KEYCLOAK_URL=http://localhost:8180/auth
-      - KEYCLOAK_REALM=hume
-      - KEYCLOAK_CLIENT=hume-web
-      - HUME_URL=http://localhost:8081
+  # example-react-app:
+  #   image: docker.graphaware.com/public/hume-iframe-react-example:${REACT_APP_VERSION}
+  #   ports:
+  #     - '8905:80'
+  #   environment:
+  #     - KEYCLOAK_URL=http://localhost:8180/auth
+  #     - KEYCLOAK_REALM=hume
+  #     - KEYCLOAK_CLIENT=hume-web
+  #     - HUME_URL=http://localhost:8081
 volumes:
   hume_keycloak_data:
   hume_postgres_data:

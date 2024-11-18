@@ -3,27 +3,71 @@
     "realm": "hume",
     "users": [
         {
-            "username": "$(env:TESTUSER_NAME)",
-            "email": "testuser@hume.ga",
+            "username": "admin",
+            "email": "admin@hume.ga",
             "enabled": true,
             "credentials": [
               {
                 "type": "password",
-                "value": "$(env:TESTUSER_PASSWORD)"
+                "value": "password"
               }
             ],
             "clientRoles": {
-                "hume-api": [
+                "hume-web": [
                     "ROLE_USER",
-                    "ROLE_ADMINISTRATOR"
+                    "ROLE_ADMINISTRATOR",
+                    "ROLE_DRONE_TEAM"
+                ],
+                "neo4j-sso": [
+                    "NEO4J_ADMIN"
                 ]
             }
-          }
+        },
+        {
+            "username": "analyst",
+            "email": "analyst@hume.ga",
+            "enabled": true,
+            "credentials": [
+              {
+                "type": "password",
+                "value": "password"
+              }
+            ],
+            "clientRoles": {
+                "hume-web": [
+                    "ROLE_USER",
+                    "ROLE_ANALYST"
+                ],
+                "neo4j-sso": [
+                    "NEO4J_ANALYST"
+                ]
+            }
+        },
+        {
+            "username": "investigator",
+            "email": "investigator@hume.ga",
+            "enabled": true,
+            "credentials": [
+              {
+                "type": "password",
+                "value": "password"
+              }
+            ],
+            "clientRoles": {
+                "hume-web": [
+                    "ROLE_USER",
+                    "ROLE_INVESTIGATOR"
+                ],
+                "neo4j-sso": [
+                    "NEO4J_INVESTIGATOR"
+                ]
+            }
+        }
     ],
     "roles": {
         "realm": [],
         "client": {
-            "hume-api": [
+            "hume-web": [
                 {
                     "name": "ROLE_USER",
                     "description": "user role",
@@ -37,26 +81,55 @@
                     "composite": false,
                     "clientRole": true,
                     "attributes": {}
+                },
+                {
+                    "name": "ROLE_ANALYST",
+                    "description": "analyst role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                },
+                {
+                    "name": "ROLE_INVESTIGATOR",
+                    "description": "investigator role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                },
+                {
+                    "name": "ROLE_DRONE_TEAM",
+                    "description": "drone team role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                }
+            ],
+            "neo4j-sso": [
+                {
+                    "name": "NEO4J_ADMIN",
+                    "description": "neo4j admin role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                },
+                {
+                    "name": "NEO4J_ANALYST",
+                    "description": "neo4j analyst role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
+                },
+                {
+                    "name": "NEO4J_INVESTIGATOR",
+                    "description": "neo4j investigator role",
+                    "composite": false,
+                    "clientRole": true,
+                    "attributes": {}
                 }
             ]
         }
     },
     "clients": [
-        {
-            "clientId": "hume-api",
-            "name": "hume-api",
-            "description": "Hume API confidential client",
-            "enabled": true,
-            "publicClient": false,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "my-special-client-secret",
-            "redirectUris": [
-                "*"
-            ],
-            "webOrigins": [
-                "*"
-            ]
-        },
         {
             "clientId": "hume-web",
             "name": "hume-web",
@@ -71,13 +144,69 @@
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "clientAuthenticatorType": "client-secret",
-            "secret": "my-special-client-secret",
+            "secret": "q3sjAeJAyLzP3W4v",
             "redirectUris": [
                 "*"
             ],
             "webOrigins": [
                 "*"
-            ]
+            ],
+            "attributes": {
+                "post.logout.redirect.uris": "*"
+            }
+        },
+        {
+            "clientId": "neo4j-sso",
+            "name": "neo4j-sso",
+            "description": "Neo4j SSO client",
+            "enabled": true,
+            "publicClient": false,
+            "consentRequired": false,
+            "standardFlowEnabled": false,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "serviceAccountsEnabled": true,
+            "frontchannelLogout": false,
+            "authorizationServicesEnabled": true,
+            "protocol": "openid-connect",
+            "clientAuthenticatorType": "client-secret",
+            "secret": "aRp3eAuKSs3FP9b5UJj68x9rnHf",
+            "authorizationSettings": {
+                "resources": [
+                    {
+                      "name": "Default Resource",
+                      "type": "urn:neo4j-sso:resources:default",
+                      "ownerManagedAccess": false,
+                      "attributes": {},
+                      "uris": [
+                        "/*"
+                      ]
+                    }
+                  ],
+                  "policies": [
+                    {
+                      "name": "Default Policy",
+                      "description": "A policy that grants access only for users within this realm",
+                      "type": "js",
+                      "logic": "POSITIVE",
+                      "decisionStrategy": "AFFIRMATIVE",
+                      "config": {
+                        "code": "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+                      }
+                    },
+                    {
+                      "name": "Default Permission",
+                      "description": "A permission that applies to the default resource type",
+                      "type": "resource",
+                      "logic": "POSITIVE",
+                      "decisionStrategy": "UNANIMOUS",
+                      "config": {
+                        "defaultResourceType": "urn:neo4j-sso:resources:default",
+                        "applyPolicies": "[\"Default Policy\"]"
+                      }
+                    }
+                  ]
+            }
         }
     ]
 }
